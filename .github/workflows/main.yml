@@ -67,4 +67,4 @@ jobs:
         cd C:\Users\Jacinthhpy\DevopsProject\MyDevOpsProject\terraform
         terraform init
         terraform apply --auto-approve
-      shell: pwsh
+      #shell: pwsh

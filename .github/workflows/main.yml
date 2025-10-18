@@ -1,5 +1,8 @@
 name: Local CI-CD Pipeline
-
+# ADD THESE THREE LINES:
+permissions:
+  contents: read
+  packages: write
 # This pipeline triggers when you merge a PR into the 'main' branch
 on:
   push:

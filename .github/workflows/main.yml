@@ -1,0 +1,67 @@
+name: Local CI-CD Pipeline
+
+# This pipeline triggers when you merge a PR into the 'main' branch
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # JOB 1: Run your tests
+  test:
+    name: Run Unit Tests
+    runs-on: self-hosted # Tells GitHub to use your local runner
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run tests
+      run: pytest
+
+  # JOB 2: Build and push the Docker image
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: self-hosted
+    needs: test # This job only runs if the 'test' job succeeds
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }} # This is a special, automatic secret
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        # Make sure your username is correct here
+        tags: ghcr.io/Jude1129/my-devops-project:latest
+
+  # JOB 3: Deploy the new image to your Docker Swarm
+  deploy:
+    name: Deploy to Local Docker Swarm
+    runs-on: self-hosted
+    needs: build-and-push # This job only runs if 'build-and-push' succeeds
+
+    steps:
+    - name: Deploy with Terraform
+      # Make sure this path is correct for your project
+      run: |
+        cd C:\Users\Jacinthhpy\DevopsProject\MyDevOpsProject\terraform
+        terraform init
+        terraform apply --auto-approve
+      shell: pwsh
